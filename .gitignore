@@ -1,0 +1,8 @@
+# Rust build artifacts
+protect/src-tauri/target/
+
+# IDE
+.idea/
+
+# Generated Tauri schemas (re-generated each build)
+protect/src-tauri/gen/schemas/

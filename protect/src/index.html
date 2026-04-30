@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDF 流式打印器</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="drag-overlay">
+  <div class="drag-hint">拖放 PDF 文件以打开</div>
+</div>
+<div id="app">
+
+  <!-- ====== Left Panel — Control ====== -->
+  <aside id="left-panel">
+    <div class="panel-inner">
+
+      <!-- Brand -->
+      <header class="brand">
+        <div class="brand-row">
+          <span class="brand-name">PDF 流式打印器</span>
+          <span class="status-dot" id="status-dot" title="就绪"></span>
+        </div>
+        <p class="brand-sub">大文件 · 流式渲染 · 逐页打印</p>
+      </header>
+
+      <!-- File Card -->
+      <section class="ctrl-card" id="file-card">
+        <div class="ctrl-label">FILE</div>
+        <div id="file-empty" class="file-placeholder">未选择文件</div>
+        <div id="file-info" style="display:none">
+          <div class="file-name" id="file-name"></div>
+          <div class="file-meta" id="file-meta"></div>
+          <div class="file-pages" id="file-pages"></div>
+        </div>
+        <button class="btn btn-ghost" id="btn-browse">选择 PDF 文件</button>
+      </section>
+
+      <!-- Page Range -->
+      <section class="ctrl-card">
+        <div class="ctrl-label">PAGES</div>
+        <div class="field-row">
+          <input type="text" id="range-input" class="input-underline" placeholder="例: 1-5, 8, 10-20">
+          <span class="input-hint" id="range-hint"></span>
+        </div>
+      </section>
+
+      <!-- Printer -->
+      <section class="ctrl-card">
+        <div class="ctrl-label">PRINTER</div>
+        <select id="printer-select" class="select-clean"></select>
+        <button class="btn btn-ghost btn-sm" id="btn-refresh-printers">刷新打印机列表</button>
+      </section>
+
+      <!-- Settings -->
+      <section class="ctrl-card">
+        <div class="ctrl-label">SETTINGS</div>
+
+        <div class="setting-row">
+          <label class="setting-label">纸张大小</label>
+          <select id="paper-size" class="select-clean select-compact">
+            <option value="9">A4</option>
+            <option value="8">A3</option>
+            <option value="1">Letter</option>
+            <option value="5">Legal</option>
+            <option value="13">B5</option>
+            <option value="11">A5</option>
+          </select>
+        </div>
+
+        <div class="setting-row">
+          <label class="setting-label">方向</label>
+          <select id="orientation" class="select-clean select-compact">
+            <option value="1">纵向</option>
+            <option value="2">横向</option>
+          </select>
+        </div>
+
+        <div class="setting-row">
+          <label class="setting-label">色彩</label>
+          <select id="color-mode" class="select-clean select-compact">
+            <option value="2">彩色</option>
+            <option value="1">灰度</option>
+          </select>
+        </div>
+
+        <div class="setting-row">
+          <label class="setting-label">双面</label>
+          <select id="duplex" class="select-clean select-compact">
+            <option value="1">单面打印（仅单面打印）</option>
+            <option value="2">双面打印（长边翻转）</option>
+            <option value="3">双面打印（短边翻转）</option>
+          </select>
+        </div>
+
+        <div class="setting-row">
+          <label class="setting-label">逐份打印</label>
+          <label class="toggle-wrap">
+            <input type="checkbox" id="collate" checked>
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+
+        <div class="settings-grid">
+          <div class="field-row">
+            <label class="field-label">DPI</label>
+            <input type="number" id="dpi-input" class="input-underline input-sm" value="200" min="72" max="600">
+          </div>
+          <div class="field-row">
+            <label class="field-label">份数</label>
+            <input type="number" id="copies-input" class="input-underline input-sm" value="1" min="1" max="99">
+          </div>
+        </div>
+      </section>
+
+      <!-- Primary Action -->
+      <button class="btn btn-primary" id="btn-print">开始打印 <span class="arrow">→</span></button>
+
+      <!-- Progress -->
+      <div id="progress-area" style="display:none">
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="progress-text" id="progress-text"></div>
+        <button class="btn btn-ghost btn-sm" id="btn-cancel">取消</button>
+      </div>
+
+      <!-- Footer -->
+      <footer class="panel-footer">
+        STREAM PRINT ENGINE &nbsp;—&nbsp; EST. 2026
+      </footer>
+    </div>
+  </aside>
+
+  <!-- ====== Right Panel — Content ====== -->
+  <main id="right-panel">
+
+    <!-- Preview -->
+    <section class="content-card" id="preview-card" style="display:none">
+      <div class="content-label">PREVIEW</div>
+      <div class="preview-toolbar">
+        <button class="btn btn-ghost btn-sm" id="btn-prev">← 上一页</button>
+        <span class="mono-label" id="preview-page-info">1 / 1</span>
+        <button class="btn btn-ghost btn-sm" id="btn-next">下一页 →</button>
+        <input type="number" id="preview-jump" class="input-underline input-sm" min="1" value="1" style="width:60px">
+        <button class="btn btn-ghost btn-sm" id="btn-jump">跳转</button>
+      </div>
+      <div class="preview-img-wrap">
+        <img id="preview-img" src="" alt="页面预览">
+      </div>
+    </section>
+
+    <!-- History -->
+    <section class="content-card" id="history-card">
+      <div class="content-label">HISTORY</div>
+      <div id="history-list"></div>
+      <div id="history-empty" class="history-empty">暂无打印记录</div>
+      <button class="btn btn-ghost btn-sm" id="btn-clear-history">清除记录</button>
+    </section>
+
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
